@@ -5,7 +5,9 @@
  @author Fabio Rodella fabio@crocodella.com.br
  */
 
-@implementation PullableView
+@implementation PullableView {
+    BOOL inited;
+}
 
 @synthesize handleView;
 @synthesize closedCenter;
@@ -16,39 +18,75 @@
 @synthesize animationDuration;
 @synthesize delegate;
 @synthesize opened;
+@synthesize verticalSliding;
+@synthesize bottomToTopSliding;
+@synthesize rightToLeftSliding;
 
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
     if (self) {
         
-        animate = YES;
-        animationDuration = 0.2;
-        
-        toggleOnTap = YES;
-        
         // Creates the handle view. Subclasses should resize, reposition and style this view
         handleView = [[UIView alloc] initWithFrame:CGRectMake(0, frame.size.height - 40, frame.size.width, 40)];
         [self addSubview:handleView];
-        [handleView release];
         
-        dragRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDrag:)];
-        dragRecognizer.minimumNumberOfTouches = 1;
-        dragRecognizer.maximumNumberOfTouches = 1;
-        
-        [handleView addGestureRecognizer:dragRecognizer];
-        [dragRecognizer release];
-        
-        tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
-        tapRecognizer.numberOfTapsRequired = 1;
-        tapRecognizer.numberOfTouchesRequired = 1;
-        
-        [handleView addGestureRecognizer:tapRecognizer];
-        [tapRecognizer release];
-        
-        opened = NO;
+        [self commonInit];
     }
     return self;
+}
+
+- (void)commonInit {
+    animate = YES;
+    animationDuration = 0.2;
+    
+    toggleOnTap = YES;
+    
+    dragRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handleDrag:)];
+    dragRecognizer.minimumNumberOfTouches = 1;
+    dragRecognizer.maximumNumberOfTouches = 1;
+    
+    [handleView addGestureRecognizer:dragRecognizer];
+    
+    tapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTap:)];
+    tapRecognizer.numberOfTapsRequired = 1;
+    tapRecognizer.numberOfTouchesRequired = 1;
+    
+    [handleView addGestureRecognizer:tapRecognizer];
+    
+    opened = NO;
+    inited = YES;
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    if (!inited) {
+        closedCenter = self.center;
+        if (self.verticalSliding) {
+            CGFloat x = self.center.x;
+            CGFloat y;
+            if (self.bottomToTopSliding) {
+                y = self.center.y - CGRectGetHeight(self.frame) + CGRectGetHeight(self.handleView.frame);
+            }
+            else {
+                y = self.center.y + CGRectGetHeight(self.frame) - CGRectGetHeight(self.handleView.frame);
+            }
+            openedCenter = CGPointMake(x,y);
+        }
+        else {
+            CGFloat y = self.center.y;
+            CGFloat x;
+            if (self.rightToLeftSliding) {
+                x = self.center.x + CGRectGetWidth(self.frame) - CGRectGetWidth(self.handleView.frame);
+            }
+            else {
+                x = self.center.x - CGRectGetWidth(self.frame) + CGRectGetWidth(self.handleView.frame);
+            }
+            openedCenter = CGPointMake(x,y);
+        }
+        
+        [self commonInit];
+    }
 }
 
 - (void)handleDrag:(UIPanGestureRecognizer *)sender {
@@ -70,7 +108,7 @@
         }
         
     } else if ([sender state] == UIGestureRecognizerStateChanged) {
-                
+        
         CGPoint translate = [sender translationInView:self.superview];
         
         CGPoint newPos;
@@ -167,7 +205,7 @@
         }
     }
 }
-         
+
 - (void)animationDidStop:(NSString *)animationID finished:(NSNumber *)finished context:(void *)context {
     if (finished) {
         // Restores interaction after the animation is over

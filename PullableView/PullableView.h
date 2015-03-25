@@ -19,7 +19,7 @@
 @end
 
 /**
- Class that implements a view that can be pulled out by a handle, 
+ Class that implements a view that can be pulled out by a handle,
  similar to the Notification Center in iOS 5. This class supports
  pulling in the horizontal or vertical axis. This is determined by
  the values for openedCenter and closedCenter that you set: if
@@ -48,14 +48,18 @@
     BOOL animate;
     float animationDuration;
     
-    id<PullableViewDelegate> delegate;
+    BOOL bottomToTopSliding;
+    BOOL rightToLeftSliding;
+    BOOL verticalSliding;
 }
-
+@property (readwrite,assign) BOOL verticalSliding;
+@property (readwrite,assign) BOOL rightToLeftSliding;
+@property (readwrite,assign) BOOL bottomToTopSliding;
 /**
  The view that is used as the handle for the PullableView. You
  can style it, add subviews or set its frame at will.
  */
-@property (nonatomic,readonly) UIView *handleView;
+@property (nonatomic,readonly) IBOutlet UIView *handleView;
 
 /**
  The point that defines the center of the view when in its closed
